@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no">
+    <title>Class Breaks Renderer</title>
+
+    <link rel="stylesheet" href="https://js.arcgis.com/3.31/esri/css/esri.css">
+    <style>
+        html, body, #map {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+    <script src="https://js.arcgis.com/3.31/"></script>
+    <script>
+      var map;
+      require([
+        "esri/map", "esri/layers/FeatureLayer",
+        "esri/InfoTemplate", "esri/symbols/SimpleFillSymbol",
+         "esri/symbols/SimpleMarkerSymbol", "esri/symbols/SimpleLineSymbol",
+        "esri/renderers/ClassBreaksRenderer",
+         "esri/graphic", "esri/SpatialReference", "esri/geometry/Point", "esri/layers/GraphicsLayer",
+        
+        "esri/Color", "dojo/dom-style", "dojo/domReady!"
+      ], function(
+        Map, FeatureLayer,
+        InfoTemplate, SimpleFillSymbol,SimpleMarkerSymbol,SimpleLineSymbol,
+        ClassBreaksRenderer,Graphic,SpatialReference,Point,GraphicsLayer,
+        Color, domStyle
+      ) {
+        map = new Map("map", {
+            basemap: "satellite",
+            center: [119.818242, 45.817716],
+            zoom: 19,
+            showLabels: true,
+          slider: false
+        });
+
+        var infoTemplate = new InfoTemplate("${layer}", "${code}");
+        var featureLayer = new FeatureLayer("https://services8.arcgis.com/2DK76NhLqiHQaYX9/arcgis/rest/services/MapLabke1/FeatureServer/0", {
+            mode: FeatureLayer.MODE_SNAPSHOT,
+            outFields: ["*"],
+            showLabels: true,
+          infoTemplate: infoTemplate
+        });
+        map.addLayer(featureLayer);
+        //map.on("click",function(e) {
+        //console.log(e.mapPoint.getLongitude() + "," + e.mapPoint.getLatitude());
+        
+          //});
+        navigator.geolocation.getCurrentPosition(translatePoint, function (err) {
+            alert("确认是否开启GPS");
+            // code：返回获取位置的状态
+            //          0  :  不包括其他错误编号中的错误
+            // ​		     1  :  用户拒绝浏览器获取位置信息
+            // ​		     2  :  尝试获取用户信息，但失败了
+            // ​		     3  :   设置了timeout值，获取位置超时了
+        }, {
+            enableHighAcuracy: false, //位置是否精确获取
+            timeout: 5000,            //获取位置允许的最长时间
+            maximumAge: 1000          //多久更新获取一次位置
+        })
+          //
+        setInterval(function () { 
+            navigator.geolocation.getCurrentPosition(translatePoint, function (err) {
+                alert("确认是否开启GPS");
+                // code：返回获取位置的状态
+                //          0  :  不包括其他错误编号中的错误
+                // ​		     1  :  用户拒绝浏览器获取位置信息
+                // ​		     2  :  尝试获取用户信息，但失败了
+                // ​		     3  :   设置了timeout值，获取位置超时了
+            }, {
+                enableHighAcuracy: false, //位置是否精确获取
+                timeout: 5000,            //获取位置允许的最长时间
+                maximumAge: 1000          //多久更新获取一次位置
+            })
+        }, 30000);
+       // translatePoint();
+        function translatePoint(position) {
+            var graphicLayer = new GraphicsLayer();
+            graphicLayer.id = "localhostP";
+            var myLayer = map.getLayer("localhostP");
+            if (myLayer == null) {
+                map.addLayer(graphicLayer);
+            } else {
+                graphicLayer = myLayer;
+                graphicLayer.clear();
+            }
+            var currentLat = position.coords.latitude;
+            var currentLon = position.coords.longitude;
+            symbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 10,
+       new SimpleLineSymbol(SimpleLineSymbol.STYLE_CIRCLE,
+       new Color("blue"), 1), new Color("blue"));
+            var point = new Point(currentLon, currentLat, new SpatialReference({ wkid: 4326 }));            
+            graphicLayer.add(new Graphic(point, symbol));
+            map.centerAndZoom(point, 18);
+        }
+      });
+    </script>
+</head>
+
+<body>
+    <div id="map"></div>
+</body>
+
+</html>
